@@ -331,6 +331,25 @@ footer > p {
     .enlaces-footer {
         flex-wrap: wrap;
     }
+
+    #productos {
+        padding: 50px 20px;
+    }
+
+    #productos .contenedor-productos {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    #productos .producto img {
+        width: 100%;
+        max-width: 350px;
+        box-sizing: border-box;
+    }
+
+    #productos .producto img {
+        height: 250px;
+    }
 }
 
 .contenido-inicio {
@@ -354,4 +373,60 @@ footer > p {
 #inicio h1,
 #inicio p {
     text-align: left;
+}
+
+.categorias {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 15px;
+    padding: 40 px 20px;
+}
+
+.categorias button {
+    background-color: transparent;
+    color: white;
+    border: 1px solid #C6A15B;
+    padding: 12px 22px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.categorias button:hover {
+    background-color: #C6A15B;
+    color: black;
+}
+
+#productos {
+    padding: 60px 40px;
+    text-align: center;
+}
+
+#productos h2 {
+    font-size: 30px;
+    letter-spacing: 3px;
+    margin-bottom: 40px;
+}
+
+#productos .producto img {
+    width: 100%;
+    height: 280px;
+    object-fit: cover;
+    margin-bottom: 20px;
+}
+
+#productos .producto span {
+    display: block;
+    color: #C6A15B;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+#productos .producto img {
+    transition: transform 0.4s ease;
+}
+
+#productos .producto:hover img {
+    transform: scale(1.05);
 }
