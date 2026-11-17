@@ -430,3 +430,28 @@ footer > p {
 #productos .producto:hover img {
     transform: scale(1.05);
 }
+
+.buscador {
+    display: flex;
+    justify-content: center;
+    padding: 30px 20px;
+}
+
+#buscar-producto {
+    width: 100%;
+    max-width: 500px;
+    background-color: #181818;
+    color: white;
+    border: 1px solid#C6A15B;
+    padding: 16px;
+    font-size: 14px;
+    outline: none;
+}
+
+#buscar-producto:focus {
+    border-color: white;
+}
+
+#buscar-producto::placeholder {
+    color: #aaaaaa;
+}
