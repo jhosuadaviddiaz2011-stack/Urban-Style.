@@ -2,6 +2,7 @@ body {
     background-color: black;
     color: white;
     font-family: Arial, sans-serif;
+    margin: 0%;
 }
 
 .barra-anuncios {
@@ -40,14 +41,16 @@ nav a:hover {
 #inicio {
     min-height: 75vh;
     display: flex;
-    flex-direction: column;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
-    text-align: center;
-    padding: 40px;
+    text-align: left;
+    padding: 60px 7%;
+    background: #080808;
+    gap: 40px;
 }
 
 .boton-principal {
+    display: inline-block;
     background-color: #C6A15B;
     color: black;
     padding: 15px 30px;
@@ -61,14 +64,294 @@ background-color: white;
 color: black;
 }
 #inicio h1 {
-     font-size: 70px;
-     font-weight: 800;
-     letter-spacing: 5px;
-     margin-bottom: 15px;
+    font-size: 65px;
+    font-weight: 800;
+    letter-spacing: 3px;
+    line-height: 1.1;
+    margin-bottom: 20px;
 }
 
 #inicio p {
-     font-size: 18px;
-     line-height: 1.8;
-     color: #cccccc;
+    font-size: 18px;
+    line-height: 1.8;
+    color: #cccccc;
+    margin-bottom: 30px;
+}
+
+header > a {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: 3px;
+}
+
+nav a {
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    transition: color 0.3s ease;  
+}
+
+.acciones-header {
+    display: flex;
+    gap: 20px;
+}
+
+.acciones-header {
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.barra-anuncios {
+    background-color: #C6A15B;
+    color: black;
+    text-align: center;
+    padding: 12px;
+    font-size: 11px;
+    font-weight: bold;
+    letter-spacing: 2px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 25px 40px;
+    background-color: #080808;
+    border-bottom: 1px solid #333333;
+}
+
+#destacados {
+    padding: 80px 40px;
+    text-align: center;
+}
+
+#destacados h2 {
+    font-size: 30px;
+    text-align: center;
+}
+
+#destacados > p {
+    color: #aaaaaa;
+    margin-bottom: 40px;
+}
+
+.contenedor-productos {
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+}
+
+.producto {
+    background-color: #181818;
+    border: 1px solid #333333;
+    padding: 40px 25px;
+    flex: 1;
+    max-width: 300px;
+    transition: 0.3s;
+}
+
+.producto:hover {
+    border-color: #C6A15B;
+    transform: translateY(-5px);
+}
+.producto h3 {
+    letter-spacing: 2px;
+}
+
+.producto p {
+    color: #aaaaaa;
+}
+
+#nosotros {
+    background-color: #111111;
+    padding: 100px 40px;
+    text-align: center;
+}
+
+.contenido-nosotros {
+    max-width: 750px;
+    margin: 0 auto;
+}
+
+#nosotros h2 {
+    font-size: 35px;
+    letter-spacing: 3px;
+    margin-bottom: 25px;
+}
+
+#nosotros p {
+    color: #cccccc;
+    font-size: 17px;
+    line-height: 1.8;
+    margin-bottom: 30px;
+}
+
+#contacto {
+    padding: 90px 40px;
+    text-align: center;
+}
+
+#contacto h2 {
+    font-size: 32px;
+    letter-spacing: 3px;
+}
+
+#contacto > p {
+    color: #aaaaaa;
+    margin-bottom: 35px;
+}
+
+#formulario-contacto {
+    max-width: 550px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+#formulario-contacto input,
+#formulario-contacto textarea {
+    background-color: #181818;
+    border: 1px solid #444444;
+    padding: 16px;
+    color: white;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+}
+
+#formulario-contaxto textarea {
+    min-height: 130px;
+    resize: vertical;
+}
+
+#formulario-contacto button {
+    background-color: #C6A15B;
+    color: black;
+    border: none;
+    padding: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#formulario-contacto button:hover {
+    background-color: white;
+}
+
+footer {
+    background-color: #080808;
+    border-top: 1px solid #333333;
+    padding: 50px 30px;
+    text-align: center;
+}
+
+footer h2 {
+    letter-spacing: 4px;
+}
+
+footer > p {
+    color: #aaaaaa;
+    font-size: 12px;
+}
+.enlaces-footer a {
+    font-size: 12px;
+    transition: 0.3s;
+}
+
+.enlaces-footer a:hover {
+    color: #C6A15B;
+}
+
+.copyright {
+    border-top: 1px solid #333333;
+    padding-top: 25px;
+}
+
+@media (max-width:768px) {
+
+      #inicio {
+        flex-direction: column;
+        text-align: center;
+        padding: 50px 20px;
+    }
+
+    #inicio h1 {
+        font-size: 40px;
+    }
+
+    .contenido-inicio {
+        max-width: 100%;
+    }
+
+    .imagen-inicio {
+        max-width: 100%;
+        width: 100%;
+    }
+
+    header {
+        flex-direction: column;
+        gap: 20px;
+        padding: 25px 15px;
+    }
+
+    nav {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+    }
+
+    .acciones-header {
+        justify-content: center;
+    }
+
+    #inicio h1 {
+        font-size: 40px;
+    }
+
+    #destacados {
+        padding: 60px 20px;
+    }
+
+    .contenedor-productos {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .producto {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    #nosotros,
+    #contacto {
+        padding: 60 px 20px;
+    }
+
+    .enlaces-footer {
+        flex-wrap: wrap;
+    }
+}
+
+.contenido-inicio {
+    flex: 1;
+    max-width: 550px;
+    text-align: left;
+}
+
+.imagen-inicio {
+    flex: 1;
+    max-width: 600px;
+}
+
+.imagen-inicio img {
+    width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 5px;
+}
+
+#inicio h1,
+#inicio p {
+    text-align: left;
 }
