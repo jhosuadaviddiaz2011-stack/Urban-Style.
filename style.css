@@ -455,3 +455,22 @@ footer > p {
 #buscar-producto::placeholder {
     color: #aaaaaa;
 }
+
+#catalogo {
+    padding: 70px 8%;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#catalogo h1 {
+    font-size: 35px;
+    letter-spacing: 3px;
+}
+
+#catalogo p {
+    max-width: 650px;
+    margin: 20px auto 0;
+    color: #cccccc;
+    font-size: 17px;
+    line-height: 1.8;
+}
