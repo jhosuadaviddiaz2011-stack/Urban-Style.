@@ -661,3 +661,67 @@ footer > p {
     transform: scale(1.05);
     transition: 0.3s ease;
 }
+
+/* FINALIZAR COMPRA */
+
+#finalizar-compra {
+    padding: 70px 20px;
+    text-align: center;
+}
+
+#finalizar-compra h1 {
+    font-size: 38px;
+    letter-spacing: 3px;
+}
+
+#finalizar-compra > p {
+    color: #cccccc;
+    margin-bottom: 40px;
+}
+
+#formulario-compra {
+    max-width: 550px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    text-align: left;
+}
+
+#formulario-compra label {
+    color: #C6A15B;
+    font-weight: bold;
+    font-size: 13px;
+}
+
+#formulario-compra input {
+    background-color: #181818;
+    color: white;
+    border: 1px solid #444444;
+    padding: 15px;
+    font-size: 14px;
+}
+
+#formulario-compra input:focus {
+    outline: none;
+    border-color: #C6A15B;
+}
+
+#formulario-compra button {
+    margin-top: 20px;
+}
+
+#resumen-pedido {
+    max-width: 650px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: #181818;
+    border: 1px solid #C6A15B;
+    text-align: center;
+    line-height: 1.8;
+}
+
+#resumen-pedido h2 {
+    color: #C6A15B;
+    letter-spacing: 2px;
+}

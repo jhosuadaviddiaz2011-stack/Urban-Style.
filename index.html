@@ -129,27 +129,47 @@
 
             </section>
 
-            <section id="contacto">
 
-                <h2>CONTÁCTANOS</h2>
+<section id="contacto">
 
-                <p>¿Tienes alguna pregunta? Estamos aquí para ayudarte.</p>
+    <h2>CONTÁCTANOS</h2>
 
-                <form id="formulario-contacto">
+    <p>¿Tienes alguna pregunta? Estamos aquí para ayudarte.</p>
 
-                    <input type="text" placeholder="Tu nombre" required>
+    <form id="formulario-contacto">
 
-                    <input type="email" placeholder="Tu correo electrónico">
+        <input
+            type="text"
+            id="nombre-contacto"
+            placeholder="Tu nombre"
+            required
+        >
 
-                    <textarea placeholder="Escribe tu mensaje" required></textarea>
+        <input
+            type="email"
+            id="correo-contacto"
+            placeholder="Tu correo electrónico"
+            required
+        >
 
-                    <button type="submit">ENVIAR MENSAJE</button>
+        <textarea
+            id="mensaje-contacto"
+            placeholder="Escribe tu mensaje"
+            required
+        ></textarea>
 
-                </form>
+        <button type="submit">
+            ENVIAR MENSAJE
+        </button>
+
+        <p id="respuesta-contacto"></p>
+
+    </form>
+
+</section>
 
 
-            </section>
-
+          
         </main>
 
         <footer>
@@ -171,6 +191,8 @@
 
             
         </footer>
+
+        <script src="contacto.js"></script>
     
     </body>
 
