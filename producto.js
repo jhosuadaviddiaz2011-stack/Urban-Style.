@@ -1,119 +1,127 @@
 
-const productosDisponibles = {
-
-    sudadera: {
-        nombre: "SUDADERA URBAN",
-        precio: 120000,
-        imagen: "imagenes/sudadera.jpg",
-        descripcion: "Una prenda diseñada para combinar comodidad, personalidad y estilo urbano."
-    },
-
-    camiseta: {
-        nombre: "CAMISETA STREET",
-        precio: 65000,
-        imagen: "imagenes/camiseta.jpg",
-        descripcion: "Diseños que expresan tu personalidad y representan tu estilo."
-    },
-
-    pantalon: {
-        nombre: "PANTALÓN BAGGY",
-        precio: 150000,
-        imagen: "imagenes/pantalon.jpg",
-        descripcion: "Libertad de movimiento y estilo para cualquier ocasión."
-    }
-
-};
-
+const API = "http://localhost:3000/api";
 
 const parametros = new URLSearchParams(window.location.search);
+const idProducto = parametros.get("id");
 
-const productoSeleccionado = parametros.get("producto");
+const nombreProducto = document.getElementById("nombre-producto");
+const descripcionProducto = document.getElementById("descripcion-producto");
+const precioProducto = document.getElementById("precio-producto");
+const imagenProducto = document.getElementById("imagen-producto");
+const botonCarrito = document.getElementById("agregar-carrito");
+const mensajeCarrito = document.getElementById("mensaje-carrito");
 
+let productoActual = null;
 
-const producto = productosDisponibles[productoSeleccionado];
+// Consultar el producto en la base de datos
+async function cargarProducto() {
+    if (!idProducto || !Number.isInteger(Number(idProducto))) {
+        mostrarError();
+        return;
+    }
 
+    try {
+        const respuesta = await fetch(`${API}/productos/${idProducto}`);
 
-if (producto) {
+        if (!respuesta.ok) {
+            mostrarError();
+            return;
+        }
 
-    document.getElementById("nombre-producto").textContent = producto.nombre;
+        productoActual = await respuesta.json();
 
-    document.getElementById("descripcion-producto").textContent = producto.descripcion;
+        nombreProducto.textContent = productoActual.nombre;
+        descripcionProducto.textContent =
+            productoActual.descripcion || "Prenda de URBAN STYLE.";
 
-    document.getElementById("precio-producto").textContent =
-        "$" + producto.precio.toLocaleString("es-CO") + " COP";
+        precioProducto.textContent =
+            "$" + Number(productoActual.precio).toLocaleString("es-CO") + " COP";
 
-    document.getElementById("imagen-producto").src = producto.imagen;
+        imagenProducto.src = productoActual.imagen || "";
+        imagenProducto.alt = productoActual.nombre;
 
-    document.getElementById("imagen-producto").alt = producto.nombre;
+        imagenProducto.onerror = function () {
+            this.onerror = null;
+            this.alt = "Imagen no disponible";
+        };
 
-} else {
-
-    document.getElementById("nombre-producto").textContent =
-        "PRODUCTO NO ENCONTRADO";
-
+    } catch (error) {
+        console.error("Error al consultar el producto:", error);
+        mostrarError();
+    }
 }
 
+function mostrarError() {
+    nombreProducto.textContent = "PRODUCTO NO ENCONTRADO";
+    descripcionProducto.textContent =
+        "No pudimos encontrar este producto. Regresa al catálogo.";
+    precioProducto.textContent = "";
+    botonCarrito.disabled = true;
+}
+
+// Seleccionar talla
 const tallas = document.querySelectorAll(".talla");
 
-tallas.forEach(function(talla) {
-
-    talla.addEventListener("click", function() {
-
-        tallas.forEach(function(otraTalla) {
+tallas.forEach(talla => {
+    talla.addEventListener("click", () => {
+        tallas.forEach(otraTalla => {
             otraTalla.classList.remove("seleccionada");
         });
 
         talla.classList.add("seleccionada");
-
+        mensajeCarrito.textContent = "";
     });
-
 });
 
-const botonCarrito = document.getElementById("agregar-carrito");
-const mensajeCarrito = document.getElementById("mensaje-carrito");
-
-botonCarrito.addEventListener("click", function() {
-
+// Agregar producto al carrito
+botonCarrito.addEventListener("click", () => {
     const tallaSeleccionada = document.querySelector(".talla.seleccionada");
 
-    if (tallaSeleccionada === null) {
-        mensajeCarrito.textContent = "Por favor, selecciona una talla.";
-        return;
-    }
-
-    if (!producto) {
+    if (!productoActual) {
         mensajeCarrito.textContent = "No se encontró el producto.";
         return;
     }
 
+    if (!tallaSeleccionada) {
+        mensajeCarrito.textContent = "Por favor, selecciona una talla.";
+        return;
+    }
+
     const nuevoProducto = {
-        nombre: producto.nombre,
-        precio: producto.precio,
+        id: productoActual.id,
+        nombre: productoActual.nombre,
+        precio: Number(productoActual.precio),
+        imagen: productoActual.imagen || "",
         talla: tallaSeleccionada.textContent,
         cantidad: 1
     };
 
-    let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    let carrito = [];
 
-    
+    try {
+        carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
-const productoExistente = carrito.find(function(item) {
-    return item.nombre === nuevoProducto.nombre &&
-           item.talla === nuevoProducto.talla;
-});
+        if (!Array.isArray(carrito)) {
+            carrito = [];
+        }
+    } catch (error) {
+        carrito = [];
+    }
 
+    const productoExistente = carrito.find(item =>
+        item.id === nuevoProducto.id &&
+        item.talla === nuevoProducto.talla
+    );
 
-if (productoExistente) {
+    if (productoExistente) {
+        productoExistente.cantidad++;
+    } else {
+        carrito.push(nuevoProducto);
+    }
 
-    productoExistente.cantidad++;
-
-} else {
-
-    carrito.push(nuevoProducto);
-
-}
-
-localStorage.setItem("carrito", JSON.stringify(carrito));
+    localStorage.setItem("carrito", JSON.stringify(carrito));
 
     mensajeCarrito.textContent = "¡Producto agregado al carrito!";
 });
+
+cargarProducto();
