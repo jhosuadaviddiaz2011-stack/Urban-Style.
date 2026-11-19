@@ -1,0 +1,45 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel administrativo | URBAN STYLE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="admin-header">
+        <h1>URBAN STYLE</h1>
+        <button id="cerrarSesion">Cerrar sesión</button>
+    </header>
+
+    <main class="panel-admin">
+        <h2>Panel administrativo</h2>
+        <p>Gestiona los productos de tu tienda.</p>
+
+        <section class="admin-formulario">
+            <h3>Agregar producto</h3>
+
+            <form id="productoForm">
+                <input id="nombre" type="text" placeholder="Nombre del producto" required>
+                <input id="descripcion" type="text" placeholder="Descripción" required>
+                <input id="precio" type="number" placeholder="Precio en COP" required>
+                <input id="imagen" type="text" placeholder="Ruta de la imagen" required>
+                <input id="categoria" type="text" placeholder="Categoría" required>
+
+                <button type="submit">Guardar producto</button>
+            </form>
+
+            <p id="mensajeAdmin"></p>
+        </section>
+
+        <section>
+            <h3>Productos registrados</h3>
+            <div id="listaProductos"></div>
+        </section>
+    </main>
+
+    <script src="panel-admin.js"></script>
+</body>
+</html>
