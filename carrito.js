@@ -27,7 +27,14 @@ function mostrarCarrito() {
             <h3>${producto.nombre}</h3>
             <p>Talla: ${producto.talla}</p>
             <p>Precio: $${producto.precio.toLocaleString("es-CO")} COP</p>
-            <p>Cantidad: ${producto.cantidad}</p>
+            
+            <div class="controles-cantidad">
+                <button onclick="cambiarCantidad(${indice}, -1)">−</button>
+
+                <span>${producto.cantidad}</span>
+
+                <button onclick="cambiarCantidad(${indice}, 1)">+</button>
+            </div>
             <button onclick="eliminarProducto(${indice})">
                 ELIMINAR
             </button>
@@ -40,6 +47,21 @@ function mostrarCarrito() {
     });
 
     totalCarrito.textContent = "TOTAL: $" + total.toLocaleString("es-CO") + " COP";
+
+}
+
+
+function cambiarCantidad(indice, cambio) {
+
+    carrito[indice].cantidad += cambio;
+
+    if (carrito[indice].cantidad < 1) {
+        carrito[indice].cantidad = 1;
+    }
+
+    localStorage.setItem("carrito", JSON.stringify(carrito));
+
+    mostrarCarrito();
 
 }
 
@@ -63,6 +85,4 @@ botonVaciar.addEventListener("click", function() {
 
 });
 
-
-// EJECUTAR AL ABRIR LA PÁGINA
 mostrarCarrito();

@@ -551,3 +551,113 @@ footer > p {
     color: black;
     border-color: white;
 }
+
+.controles-cantidad {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.controles-cantidad button {
+    background-color: transparent;
+    color: #C6A15B;
+    border: 1px solid #C6A15B;
+    width: 35px;
+    height: 35px;
+    font-size: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    line-height: 1;
+}
+
+.controles-cantidad button:hover {
+    background-color: #C6A15B;
+    color: black;
+}
+
+.controles-cantidad span {
+    font-size: 17px;
+    font-weight: bold;
+    min-width: 20px;
+    text-align: center;
+}
+
+#pagina-carrito {
+    padding: 70px 8%;
+    text-align: center;
+}
+
+#pagina-carrito h1 {
+    font-size: 40px;
+    letter-spacing: 3px;
+}
+
+.producto-carrito {
+    background-color: #181818;
+    border: 1px solid #333333;
+    padding: 25px;
+    margin: 20px auto;
+    max-width: 650px;
+}
+
+.producto-carrito h3 {
+    letter-spacing: 2px;
+}
+
+.producto-carrito p {
+    color: #cccccc;
+}
+
+.producto-carrito button {
+    background-color: transparent;
+    color: #C6A15B;
+    border: 1px solid #C6A15B;
+    padding: 10px 20px;
+    cursor: pointer;
+}
+
+.producto-carrito button:hover {
+    background-color: #C6A15B;
+    color: black;
+}
+
+.resumen-carrito {
+    margin: 40px auto;
+}
+
+#total-carrito {
+    color: #C6A15B;
+    font-size: 25px;
+}
+
+#vaciar-carrito {
+    background-color: transparent;
+    color: #C6A15B;
+    border: 1px solid #C6A15B;
+    padding: 14px 28px;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+#vaciar-carrito:hover {
+    background-color: #C6A15B;
+    color: black;
+}
+
+.producto-carrito button:hover {
+    background-color: #C6A15B;
+    color: black;
+    border-color: #C6A15B;
+    transform: scale(1.05);
+    transition: 0.3s ease;
+}
