@@ -52,3 +52,68 @@ if (producto) {
         "PRODUCTO NO ENCONTRADO";
 
 }
+
+const tallas = document.querySelectorAll(".talla");
+
+tallas.forEach(function(talla) {
+
+    talla.addEventListener("click", function() {
+
+        tallas.forEach(function(otraTalla) {
+            otraTalla.classList.remove("seleccionada");
+        });
+
+        talla.classList.add("seleccionada");
+
+    });
+
+});
+
+const botonCarrito = document.getElementById("agregar-carrito");
+const mensajeCarrito = document.getElementById("mensaje-carrito");
+
+botonCarrito.addEventListener("click", function() {
+
+    const tallaSeleccionada = document.querySelector(".talla.seleccionada");
+
+    if (tallaSeleccionada === null) {
+        mensajeCarrito.textContent = "Por favor, selecciona una talla.";
+        return;
+    }
+
+    if (!producto) {
+        mensajeCarrito.textContent = "No se encontró el producto.";
+        return;
+    }
+
+    const nuevoProducto = {
+        nombre: producto.nombre,
+        precio: producto.precio,
+        talla: tallaSeleccionada.textContent,
+        cantidad: 1
+    };
+
+    let carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+
+    
+
+const productoExistente = carrito.find(function(item) {
+    return item.nombre === nuevoProducto.nombre &&
+           item.talla === nuevoProducto.talla;
+});
+
+
+if (productoExistente) {
+
+    productoExistente.cantidad++;
+
+} else {
+
+    carrito.push(nuevoProducto);
+
+}
+
+localStorage.setItem("carrito", JSON.stringify(carrito));
+
+    mensajeCarrito.textContent = "¡Producto agregado al carrito!";
+});
