@@ -12,16 +12,18 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors({
-    origin: true
+    origin: [
+        "http://127.0.0.1:5500",
+        "http://localhost:5500"
+    ]
 }));
 
 // =====================================
-// 1. CONEXION A LA BASE DE DATOS
+// 1. BASE DE DATOS
 // =====================================
 
 const db = new Database("urbanstyle.db");
 
-// Crear tabla de productos
 db.exec(`
     CREATE TABLE IF NOT EXISTS productos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -31,7 +33,6 @@ db.exec(`
     )
 `);
 
-// Crear tabla de pedidos
 db.exec(`
     CREATE TABLE IF NOT EXISTS pedidos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -44,7 +45,6 @@ db.exec(`
     )
 `);
 
-// Crear tabla de mensajes
 db.exec(`
     CREATE TABLE IF NOT EXISTS mensajes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,7 +55,6 @@ db.exec(`
     )
 `);
 
-// Crear tabla de administradores
 db.exec(`
     CREATE TABLE IF NOT EXISTS administradores (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -65,7 +64,23 @@ db.exec(`
 `);
 
 // =====================================
-// 2. PRODUCTOS INICIALES
+// 2. ACTUALIZAR TABLA DE PRODUCTOS
+// =====================================
+
+const columnas = db.prepare(
+    "PRAGMA table_info(productos)"
+).all().map(columna => columna.name);
+
+if (!columnas.includes("descripcion")) {
+    db.exec("ALTER TABLE productos ADD COLUMN descripcion TEXT");
+}
+
+if (!columnas.includes("imagen")) {
+    db.exec("ALTER TABLE productos ADD COLUMN imagen TEXT");
+}
+
+// =====================================
+// 3. PRODUCTOS INICIALES
 // =====================================
 
 const cantidad = db.prepare(
@@ -74,17 +89,38 @@ const cantidad = db.prepare(
 
 if (cantidad.total === 0) {
     const insertar = db.prepare(`
-        INSERT INTO productos (nombre, precio, categoria)
-        VALUES (?, ?, ?)
+        INSERT INTO productos
+        (nombre, precio, categoria, descripcion, imagen)
+        VALUES (?, ?, ?, ?, ?)
     `);
 
-    insertar.run("SUDADERA URBAN", 120000, "sudaderas");
-    insertar.run("CAMISETA STREET", 65000, "camisetas");
-    insertar.run("PANTALON BAGGY", 150000, "pantalones");
+    insertar.run(
+        "SUDADERA URBAN",
+        120000,
+        "sudaderas",
+        "Prendas cómodas con estilo urbano.",
+        "imagenes/sudadera.jpg"
+    );
+
+    insertar.run(
+        "CAMISETA STREET",
+        65000,
+        "camisetas",
+        "Diseños para expresar tu personalidad.",
+        "imagenes/camiseta.jpg"
+    );
+
+    insertar.run(
+        "PANTALON BAGGY",
+        150000,
+        "pantalones",
+        "Comodidad y actitud en cada paso.",
+        "imagenes/pantalon.jpg"
+    );
 }
 
 // =====================================
-// 3. CREAR ADMINISTRADOR
+// 4. ADMINISTRADOR
 // =====================================
 
 const usuarioAdmin = process.env.ADMIN_USER;
@@ -109,7 +145,7 @@ if (!adminExiste) {
 }
 
 // =====================================
-// 4. RUTA PRINCIPAL
+// 5. RUTA PRINCIPAL
 // =====================================
 
 app.get("/", (req, res) => {
@@ -117,18 +153,17 @@ app.get("/", (req, res) => {
 });
 
 // =====================================
-// 5. CONSULTAR PRODUCTOS
+// 6. CONSULTAR PRODUCTOS
 // =====================================
 
 app.get("/api/productos", (req, res) => {
     const productos = db.prepare(
-        "SELECT * FROM productos"
+        "SELECT * FROM productos ORDER BY id DESC"
     ).all();
 
     res.json(productos);
 });
 
-// Consultar un producto por ID
 app.get("/api/productos/:id", (req, res) => {
     const producto = db.prepare(
         "SELECT * FROM productos WHERE id = ?"
@@ -144,11 +179,88 @@ app.get("/api/productos/:id", (req, res) => {
 });
 
 // =====================================
-// 6. CREAR PRODUCTOS
+// 7. AUTENTICACIÓN
+// =====================================
+
+function verificarAdmin(req, res, next) {
+    const autorizacion = req.headers.authorization;
+
+    if (!autorizacion || !autorizacion.startsWith("Bearer ")) {
+        return res.status(401).json({
+            mensaje: "Debes iniciar sesión"
+        });
+    }
+
+    const token = autorizacion.split(" ")[1];
+
+    try {
+        req.admin = jwt.verify(token, secreto);
+        next();
+    } catch (error) {
+        return res.status(401).json({
+            mensaje: "Sesión inválida o vencida"
+        });
+    }
+}
+
+app.post("/api/admin/login", (req, res) => {
+    const { usuario, password } = req.body;
+
+    if (
+        typeof usuario !== "string" ||
+        typeof password !== "string" ||
+        !usuario.trim() ||
+        !password
+    ) {
+        return res.status(400).json({
+            mensaje: "Completa usuario y contraseña"
+        });
+    }
+
+    const admin = db.prepare(
+        "SELECT * FROM administradores WHERE usuario = ?"
+    ).get(usuario.trim());
+
+    if (!admin || !bcrypt.compareSync(password, admin.password)) {
+        return res.status(401).json({
+            mensaje: "Credenciales incorrectas"
+        });
+    }
+
+    const token = jwt.sign(
+        {
+            id: admin.id,
+            usuario: admin.usuario
+        },
+        secreto,
+        { expiresIn: "2h" }
+    );
+
+    res.json({
+        mensaje: "Inicio de sesión correcto",
+        token
+    });
+});
+
+app.get("/api/admin/perfil", verificarAdmin, (req, res) => {
+    res.json({
+        mensaje: "Acceso autorizado",
+        administrador: req.admin.usuario
+    });
+});
+
+// =====================================
+// 8. CREAR PRODUCTOS
 // =====================================
 
 app.post("/api/productos", verificarAdmin, (req, res) => {
-    const { nombre, precio, categoria } = req.body;
+    const {
+        nombre,
+        precio,
+        categoria,
+        descripcion,
+        imagen
+    } = req.body;
 
     if (
         typeof nombre !== "string" || !nombre.trim() ||
@@ -156,27 +268,41 @@ app.post("/api/productos", verificarAdmin, (req, res) => {
         typeof categoria !== "string" || !categoria.trim()
     ) {
         return res.status(400).json({
-            mensaje: "Datos del producto invalidos"
+            mensaje: "Datos del producto inválidos"
         });
     }
 
     const resultado = db.prepare(`
-        INSERT INTO productos (nombre, precio, categoria)
-        VALUES (?, ?, ?)
-    `).run(nombre.trim(), precio, categoria.trim());
+        INSERT INTO productos
+        (nombre, precio, categoria, descripcion, imagen)
+        VALUES (?, ?, ?, ?, ?)
+    `).run(
+        nombre.trim(),
+        precio,
+        categoria.trim().toLowerCase(),
+        typeof descripcion === "string" ? descripcion.trim() : "",
+        typeof imagen === "string" ? imagen.trim() : ""
+    );
 
     res.status(201).json({
-        mensaje: "Producto creado",
+        mensaje: "Producto creado correctamente",
         id: resultado.lastInsertRowid
     });
 });
 
 // =====================================
-// 7. ACTUALIZAR PRODUCTOS
+// 9. ACTUALIZAR PRODUCTOS
 // =====================================
 
 app.put("/api/productos/:id", verificarAdmin, (req, res) => {
-    const { nombre, precio, categoria } = req.body;
+    const {
+        nombre,
+        precio,
+        categoria,
+        descripcion,
+        imagen
+    } = req.body;
+
     const id = Number(req.params.id);
 
     if (
@@ -185,15 +311,26 @@ app.put("/api/productos/:id", verificarAdmin, (req, res) => {
         typeof categoria !== "string" || !categoria.trim()
     ) {
         return res.status(400).json({
-            mensaje: "Datos del producto invalidos"
+            mensaje: "Datos del producto inválidos"
         });
     }
 
     const resultado = db.prepare(`
         UPDATE productos
-        SET nombre = ?, precio = ?, categoria = ?
+        SET nombre = ?,
+            precio = ?,
+            categoria = ?,
+            descripcion = ?,
+            imagen = ?
         WHERE id = ?
-    `).run(nombre.trim(), precio, categoria.trim(), id);
+    `).run(
+        nombre.trim(),
+        precio,
+        categoria.trim().toLowerCase(),
+        typeof descripcion === "string" ? descripcion.trim() : "",
+        typeof imagen === "string" ? imagen.trim() : "",
+        id
+    );
 
     if (resultado.changes === 0) {
         return res.status(404).json({
@@ -202,12 +339,12 @@ app.put("/api/productos/:id", verificarAdmin, (req, res) => {
     }
 
     res.json({
-        mensaje: "Producto actualizado"
+        mensaje: "Producto actualizado correctamente"
     });
 });
 
 // =====================================
-// 8. ELIMINAR PRODUCTOS
+// 10. ELIMINAR PRODUCTOS
 // =====================================
 
 app.delete("/api/productos/:id", verificarAdmin, (req, res) => {
@@ -222,12 +359,12 @@ app.delete("/api/productos/:id", verificarAdmin, (req, res) => {
     }
 
     res.json({
-        mensaje: "Producto eliminado"
+        mensaje: "Producto eliminado correctamente"
     });
 });
 
 // =====================================
-// 9. REGISTRAR PEDIDOS
+// 11. REGISTRAR PEDIDOS
 // =====================================
 
 app.post("/api/pedidos", (req, res) => {
@@ -245,11 +382,10 @@ app.post("/api/pedidos", (req, res) => {
         !Array.isArray(productos) || productos.length === 0
     ) {
         return res.status(400).json({
-            mensaje: "Datos del pedido invalidos"
+            mensaje: "Datos del pedido inválidos"
         });
     }
 
-    // Consultar precios reales desde la base de datos
     let total = 0;
     const productosValidados = [];
 
@@ -263,7 +399,7 @@ app.post("/api/pedidos", (req, res) => {
             cantidad <= 0
         ) {
             return res.status(400).json({
-                mensaje: "Producto o cantidad invalida"
+                mensaje: "Producto o cantidad inválida"
             });
         }
 
@@ -283,7 +419,7 @@ app.post("/api/pedidos", (req, res) => {
             id: producto.id,
             nombre: producto.nombre,
             precio: producto.precio,
-            cantidad: cantidad
+            cantidad
         });
     }
 
@@ -302,12 +438,12 @@ app.post("/api/pedidos", (req, res) => {
     res.status(201).json({
         mensaje: "Pedido registrado",
         pedidoId: resultado.lastInsertRowid,
-        total: total
+        total
     });
 });
 
 // =====================================
-// 10. REGISTRAR MENSAJES
+// 12. REGISTRAR MENSAJES
 // =====================================
 
 app.post("/api/contacto", (req, res) => {
@@ -334,85 +470,11 @@ app.post("/api/contacto", (req, res) => {
 });
 
 // =====================================
-// 11. INICIO DE SESION ADMINISTRADOR
-// =====================================
-
-app.post("/api/admin/login", (req, res) => {
-    const { usuario, password } = req.body;
-
-    if (
-        typeof usuario !== "string" ||
-        typeof password !== "string" ||
-        !usuario.trim() ||
-        !password
-    ) {
-        return res.status(400).json({
-            mensaje: "Completa usuario y contrasena"
-        });
-    }
-
-    const admin = db.prepare(
-        "SELECT * FROM administradores WHERE usuario = ?"
-    ).get(usuario.trim());
-
-    if (!admin || !bcrypt.compareSync(password, admin.password)) {
-        return res.status(401).json({
-            mensaje: "Credenciales incorrectas"
-        });
-    }
-
-    const token = jwt.sign(
-        {
-            id: admin.id,
-            usuario: admin.usuario
-        },
-        secreto,
-        { expiresIn: "2h" }
-    );
-
-    res.json({
-        mensaje: "Inicio de sesion correcto",
-        token: token
-    });
-});
-
-// =====================================
-// 12. PROTEGER RUTAS ADMINISTRATIVAS
-// =====================================
-
-function verificarAdmin(req, res, next) {
-    const autorizacion = req.headers.authorization;
-
-    if (!autorizacion || !autorizacion.startsWith("Bearer ")) {
-        return res.status(401).json({
-            mensaje: "Debes iniciar sesion"
-        });
-    }
-
-    const token = autorizacion.split(" ")[1];
-
-    try {
-        req.admin = jwt.verify(token, secreto);
-        next();
-    } catch (error) {
-        return res.status(401).json({
-            mensaje: "Sesion invalida o vencida"
-        });
-    }
-}
-
-// Consultar perfil del administrador
-app.get("/api/admin/perfil", verificarAdmin, (req, res) => {
-    res.json({
-        mensaje: "Acceso autorizado",
-        administrador: req.admin.usuario
-    });
-});
-
-// =====================================
 // 13. INICIAR SERVIDOR
 // =====================================
 
 app.listen(PORT, () => {
-    console.log("Servidor funcionando en http://localhost:" + PORT);
+    console.log(
+        "Servidor funcionando en http://localhost:" + PORT
+    );
 });

@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="es">
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale 1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Catálogo | URBAN STYLE</title>
 
@@ -19,16 +20,16 @@
             <a href="index.html">INICIO</a>
             <a href="catalogo.html">CATÁLOGO</a>
             <a href="index.html#nosotros">NOSOTROS</a>
-            <a href="index.htmlcontacto">CONTACTO</a>
+            <a href="index.html#contacto">CONTACTO</a>
         </nav>
 
         <div class="acciones-header">
             <a href="carrito.html">CARRITO</a>
         </div>
-
     </header>
 
     <main>
+
         <section id="catalogo">
             <h1>EXPLORA NUESTRA COLECCIÓN</h1>
 
@@ -39,73 +40,39 @@
         </section>
 
         <div class="buscador">
-            <input 
-             type="text"
-             id="buscar-producto"
-             placeholder="BUSCAR PRODUCTOS...">
+            <input
+                type="text"
+                id="buscar-producto"
+                placeholder="BUSCAR PRODUCTOS..."
+            >
         </div>
 
         <section class="categorias">
-            <button>TODO</button>
-            <button>SUDADERAS</button>
-            <button>CAMISETAS</button>
-            <button>PANTALONES</button>
-            <button>CHAQUETAS</button>
-            <button>ACCESORIOS</button>
-            <button>SNEAKERS</button>
+            <button data-categoria="todo">TODO</button>
+            <button data-categoria="sudaderas">SUDADERAS</button>
+            <button data-categoria="camisetas">CAMISETAS</button>
+            <button data-categoria="pantalones">PANTALONES</button>
+            <button data-categoria="chaquetas">CHAQUETAS</button>
+            <button data-categoria="accesorios">ACCESORIOS</button>
+            <button data-categoria="sneakers">SNEAKERS</button>
         </section>
 
         <section id="productos">
             <h2>NUESTRA COLECCIÓN</h2>
 
-            <div class="contenedor-productos">
+            <p id="estado-productos">Cargando productos...</p>
 
-                <article class="producto">
-                    <img src="imagenes/sudadera.jpg" alt="sudadera urbana">
-                    <h3>SUDADERAS URBAN</h3>
-                    <p>Prendas cómodas con estilo urbano.</p>
-                    <span>120.000 COP</span>
-                    
-                    <a href="producto.html?producto=sudadera" class="boton-principal">
-                        VER PRODUCTO
-                    </a>
-
-                </article>
-
-                <article class="producto">
-                    <img src="imagenes/camiseta.jpg" alt="camiseta urbana">
-                    <h3>CAMISETAS STREET</h3>
-                    <p>Diseños para expresar tu personalidad.</p>
-                    <span>60.000 COP</span>
-
-                    <a href="producto.html?producto=camiseta" class="boton-principal">
-                        VER PRODUCTO
-                    </a>
-
-                </article>
-
-                <article class="producto">
-                    <img src="imagenes/pantalon.jpg" alt="pantalon urbano">
-                    <h3>PANTALONES BAGGY</h3>
-                    <p>Comodidad y actitud en cada paso.</p>
-                    <span>100.000 COP</span>
-                    <a href="producto.html?producto=pantalon" class="boton-principal">
-                        VER PRODUCTO
-                    </a>
-
-                </article>
-
+            <div class="contenedor-productos" id="contenedor-productos">
             </div>
         </section>
 
     </main>
 
     <footer>
-
+        <p>URBAN STYLE | Estilo sin límites</p>
     </footer>
 
-    <script src="catalogo.js"> </script>
+    <script src="catalogo.js"></script>
 
 </body>
-
 </html>
