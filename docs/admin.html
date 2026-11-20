@@ -1,0 +1,82 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Administración | URBAN STYLE</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header>
+        <a href="index.html">URBAN STYLE</a>
+        <nav>
+            <a href="index.html">INICIO</a>
+            <a href="catalogo.html">CATÁLOGO</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="inicio-sesion">
+            <h1>ADMINISTRACIÓN</h1>
+            <p>Inicia sesión para gestionar la tienda.</p>
+
+            <form id="formulario-login">
+                <label for="usuario">Usuario</label>
+                <input type="text" id="usuario" required>
+
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" required>
+
+                <button type="submit" class="boton-principal">
+                    INICIAR SESIÓN
+                </button>
+            </form>
+
+            <p id="mensaje-login"></p>
+        </section>
+
+        <section id="panel-admin" hidden>
+            <h1>PANEL DE ADMINISTRACIÓN</h1>
+
+            <button id="cerrar-sesion">CERRAR SESIÓN</button>
+
+            <h2>Crear producto</h2>
+
+            <form id="formulario-producto">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" required>
+
+                <label for="precio">Precio en COP</label>
+                <input type="number" id="precio" min="1" required>
+
+                <label for="categoria">Categoría</label>
+                <select id="categoria" required>
+                    <option value="">Selecciona una categoría</option>
+                    <option value="sudaderas">Sudaderas</option>
+                    <option value="camisetas">Camisetas</option>
+                    <option value="pantalones">Pantalones</option>
+                </select>
+
+                <label for="descripcion">Descripción</label>
+                <textarea id="descripcion"></textarea>
+
+                <label for="imagen">Ruta de imagen</label>
+                <input type="text" id="imagen" placeholder="imagenes/producto.jpg">
+
+                <button type="submit" class="boton-principal">
+                    GUARDAR PRODUCTO
+                </button>
+            </form>
+
+            <p id="mensaje-producto"></p>
+
+            <h2>Productos registrados</h2>
+            <div id="lista-productos"></div>
+        </section>
+    </main>
+
+    <script src="admin.js"></script>
+</body>
+</html>
