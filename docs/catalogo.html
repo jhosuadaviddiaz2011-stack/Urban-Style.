@@ -1,0 +1,78 @@
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Catálogo | URBAN STYLE</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <header>
+        <a href="index.html">URBAN STYLE</a>
+
+        <nav>
+            <a href="index.html">INICIO</a>
+            <a href="catalogo.html">CATÁLOGO</a>
+            <a href="index.html#nosotros">NOSOTROS</a>
+            <a href="index.html#contacto">CONTACTO</a>
+        </nav>
+
+        <div class="acciones-header">
+            <a href="carrito.html">CARRITO</a>
+        </div>
+    </header>
+
+    <main>
+
+        <section id="catalogo">
+            <h1>EXPLORA NUESTRA COLECCIÓN</h1>
+
+            <p>
+                Encuentra prendas que representan tu personalidad.
+                Diseña tu propio estilo con URBAN STYLE.
+            </p>
+        </section>
+
+        <div class="buscador">
+            <input
+                type="text"
+                id="buscar-producto"
+                placeholder="BUSCAR PRODUCTOS..."
+            >
+        </div>
+
+        <section class="categorias">
+            <button data-categoria="todo">TODO</button>
+            <button data-categoria="sudaderas">SUDADERAS</button>
+            <button data-categoria="camisetas">CAMISETAS</button>
+            <button data-categoria="pantalones">PANTALONES</button>
+            <button data-categoria="chaquetas">CHAQUETAS</button>
+            <button data-categoria="accesorios">ACCESORIOS</button>
+            <button data-categoria="sneakers">SNEAKERS</button>
+        </section>
+
+        <section id="productos">
+            <h2>NUESTRA COLECCIÓN</h2>
+
+            <p id="estado-productos">Cargando productos...</p>
+
+            <div class="contenedor-productos" id="contenedor-productos">
+            </div>
+        </section>
+
+    </main>
+
+    <footer>
+        <p>URBAN STYLE | Estilo sin límites</p>
+    </footer>
+
+    <script src="catalogo.js"></script>
+
+</body>
+</html>
