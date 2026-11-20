@@ -8,6 +8,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
+app.use(express.static(__dirname));
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
@@ -149,7 +150,7 @@ if (!adminExiste) {
 // =====================================
 
 app.get("/", (req, res) => {
-    res.send("Backend de URBAN STYLE funcionando");
+    res.sendFile(__dirname + "/index.html");
 });
 
 // =====================================

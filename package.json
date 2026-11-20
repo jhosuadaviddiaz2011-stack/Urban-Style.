@@ -1,23 +1,14 @@
+
 {
   "name": "urban-style",
   "version": "1.0.0",
   "description": "",
-  "main": "carrito.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/jhosuadaviddiaz2011-stack/Urban-Style..git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
   "type": "commonjs",
-  "bugs": {
-    "url": "https://github.com/jhosuadaviddiaz2011-stack/Urban-Style./issues"
-  },
-  "homepage": "https://github.com/jhosuadaviddiaz2011-stack/Urban-Style.#readme",
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^13.2.0",
