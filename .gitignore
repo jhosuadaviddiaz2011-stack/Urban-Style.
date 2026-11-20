@@ -1,0 +1,17 @@
+# Dependencias
+node_modules/
+
+# Credenciales
+.env
+.env.*
+!.env.example
+
+# Bases de datos
+urbanstyle.db
+*.db
+*.sqlite
+*.sqlite3
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
