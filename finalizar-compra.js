@@ -1,82 +1,82 @@
-console.log("JAVASCRIPT DE COMPRA CONECTADO");
+
+const API = "http://localhost:3000/api";
 
 const formulario = document.getElementById("formulario-compra");
-
-
 const resumen = document.getElementById("resumen-pedido");
 
-
-formulario.addEventListener("submit", function(event) {
-
+formulario.addEventListener("submit", async function(event) {
     event.preventDefault();
 
+    const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
 
-    const nombre = document.getElementById("nombre").value;
-    const correo = document.getElementById("correo").value;
-    const telefono = document.getElementById("telefono").value;
-    const direccion = document.getElementById("direccion").value;
-    const ciudad = document.getElementById("ciudad").value;
+    if (carrito.length === 0) {
+        resumen.textContent = "Tu carrito está vacío.";
+        return;
+    }
 
+    const datos = {
+        nombre_cliente: document.getElementById("nombre").value.trim(),
+        correo: document.getElementById("correo").value.trim(),
+        telefono: document.getElementById("telefono").value.trim(),
+        direccion: document.getElementById("direccion").value.trim(),
+        ciudad: document.getElementById("ciudad").value.trim(),
+        productos: carrito.map(producto => ({
+            id: Number(producto.id),
+            cantidad: Number(producto.cantidad)
+        }))
+    };
 
+    const boton = formulario.querySelector('button[type="submit"]');
 
-const carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+    boton.disabled = true;
+    boton.textContent = "REGISTRANDO PEDIDO...";
+    resumen.textContent = "Registrando tu pedido...";
 
-let total = 0;
+    try {
+        const respuesta = await fetch(`${API}/pedidos`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(datos)
+        });
 
-carrito.forEach(function(producto) {
-    total += producto.precio * producto.cantidad;
-});
+        const resultado = await respuesta.json();
 
+        if (!respuesta.ok) {
+            throw new Error(resultado.mensaje || resultado.error || "No se pudo registrar el pedido.");
+        }
 
-resumen.innerHTML = `
-    <h2>RESUMEN DE TU PEDIDO</h2>
+        localStorage.removeItem("carrito");
 
-    <h3>DATOS DEL CLIENTE</h3>
-    <p>Nombre: ${nombre}</p>
-    <p>Correo: ${correo}</p>
-    <p>Teléfono: ${telefono}</p>
-    <p>Dirección: ${direccion}</p>
-    <p>Ciudad: ${ciudad}</p>
+        formulario.style.display = "none";
+        resumen.innerHTML = "";
 
-    <h3>PRODUCTOS</h3>
+        const titulo = document.createElement("h2");
+        titulo.textContent = "¡PEDIDO REGISTRADO!";
 
-    ${carrito.map(function(producto) {
-        return `
+        const mensaje = document.createElement("p");
+        mensaje.textContent = "Gracias por comprar en URBAN STYLE.";
 
-            <div>
-                <p>${producto.nombre}</p>
-                <p>Talla: ${producto.talla}</p>
-                <p>Cantidad: ${producto.cantidad}</p>
-                <p>Precio: $${producto.precio.toLocaleString("es-CO")} COP</p>
-            </div>
-        `;
-    }).join("")}
+        const detalle = document.createElement("p");
+        detalle.textContent = resultado.mensaje || "Tu pedido fue registrado correctamente.";
 
-    <h2>TOTAL: $${total.toLocaleString("es-CO")} COP</h2>
+        const enlace = document.createElement("a");
+        enlace.href = "catalogo.html";
+        enlace.className = "boton-principal";
+        enlace.textContent = "SEGUIR COMPRANDO";
 
-    <button id="confirmar-pedido" class="boton-principal">
-        CONFIRMAR PEDIDO
-    </button>
-`;
+        resumen.append(titulo, mensaje, detalle, enlace);
 
-const botonConfirmar = document.getElementById("confirmar-pedido");
+        resumen.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+        });
 
-botonConfirmar.addEventListener("click", function() {
-
-    const numeroPedido = Math.floor(Math.random() * 90000) + 10000;
-
-    resumen.innerHTML = `
-        <h2>¡PEDIDO CONFIRMADO!</h2>
-        <p>Gracias por comprar en URBAN STYLE.</p>
-        <p>Número de pedido: #${numeroPedido}</p>
-        <p>Tu pedido ha sido registrado correctamente.</p>
-        <a href="catalogo.html" class="boton-principal">
-            SEGUIR COMPRANDO
-        </a>
-    `;
-
-    localStorage.removeItem("carrito");
-
-});
-
+    } catch (error) {
+        console.error(error);
+        resumen.textContent = error.message || "Error al registrar el pedido.";
+        boton.disabled = false;
+        boton.textContent = "CONFIRMAR PEDIDO";
+    }
 });
