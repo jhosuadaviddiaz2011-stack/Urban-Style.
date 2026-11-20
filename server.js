@@ -310,13 +310,103 @@ app.delete("/api/productos/:id", verificarAdmin, async (req, res) => {
 // 9. REGISTRAR PEDIDOS
 // =====================================
 
+
 app.post("/api/pedidos", async (req, res) => {
     const {
         nombre_cliente,
         correo,
+        telefono,
         direccion,
+        ciudad,
         productos
     } = req.body;
+
+    if (
+        typeof nombre_cliente !== "string" || !nombre_cliente.trim() ||
+        typeof correo !== "string" || !correo.trim() ||
+        typeof telefono !== "string" || !telefono.trim() ||
+        typeof direccion !== "string" || !direccion.trim() ||
+        typeof ciudad !== "string" || !ciudad.trim() ||
+        !Array.isArray(productos) || productos.length === 0
+    ) {
+        return res.status(400).json({
+            mensaje: "Completa correctamente todos los datos"
+        });
+    }
+
+    try {
+        let total = 0;
+        const productosValidados = [];
+
+        for (const item of productos) {
+            const id = Number(item.id);
+            const cantidad = Number(item.cantidad);
+
+            if (
+                !Number.isInteger(id) ||
+                !Number.isInteger(cantidad) ||
+                cantidad <= 0
+            ) {
+                return res.status(400).json({
+                    mensaje: "Producto o cantidad inválida"
+                });
+            }
+
+            const resultado = await pool.query(
+                "SELECT id, nombre, precio FROM productos WHERE id = $1",
+                [id]
+            );
+
+            const producto = resultado.rows[0];
+
+            if (!producto) {
+                return res.status(400).json({
+                    mensaje: "Producto no encontrado"
+                });
+            }
+
+            const precio = Number(producto.precio);
+            total += precio * cantidad;
+
+            productosValidados.push({
+                id: producto.id,
+                nombre: producto.nombre,
+                precio,
+                cantidad,
+                talla: typeof item.talla === "string" ? item.talla : ""
+            });
+        }
+
+        const resultado = await pool.query(
+            `INSERT INTO pedidos
+            (nombre_cliente, correo, telefono, direccion, ciudad, productos, total)
+            VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id`,
+            [
+                nombre_cliente.trim(),
+                correo.trim(),
+                telefono.trim(),
+                direccion.trim(),
+                ciudad.trim(),
+                JSON.stringify(productosValidados),
+                total
+            ]
+        );
+
+        res.status(201).json({
+            mensaje: "Pedido registrado correctamente",
+            pedidoId: resultado.rows[0].id,
+            total
+        });
+
+    } catch (error) {
+        console.error("Error al registrar pedido:", error);
+        res.status(500).json({
+            mensaje: "No se pudo registrar el pedido"
+        });
+    }
+});
+
 
     if (
         typeof nombre_cliente !== "string" || !nombre_cliente.trim() ||
