@@ -3,184 +3,118 @@ require("dotenv").config();
 
 const express = require("express");
 const cors = require("cors");
-const Database = require("better-sqlite3");
+const { Pool } = require("pg");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const app = express();
-app.use(express.static(__dirname));
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
 app.use(cors({
     origin: [
         "http://127.0.0.1:5500",
-        "http://localhost:5500"
+        "http://localhost:5500",
+        "http://localhost:3000",
+        "https://jhosuadaviddiaz2011-stack.github.io"
     ]
 }));
 
 // =====================================
-// 1. BASE DE DATOS
+// 1. CONEXIÓN CON SUPABASE
 // =====================================
 
-const db = new Database("urbanstyle.db");
-
-db.exec(`
-    CREATE TABLE IF NOT EXISTS productos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        precio REAL NOT NULL,
-        categoria TEXT NOT NULL
-    )
-`);
-
-db.exec(`
-    CREATE TABLE IF NOT EXISTS pedidos (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre_cliente TEXT NOT NULL,
-        correo TEXT NOT NULL,
-        direccion TEXT NOT NULL,
-        productos TEXT NOT NULL,
-        total REAL NOT NULL,
-        fecha DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-`);
-
-db.exec(`
-    CREATE TABLE IF NOT EXISTS mensajes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        nombre TEXT NOT NULL,
-        correo TEXT NOT NULL,
-        mensaje TEXT NOT NULL,
-        fecha DATETIME DEFAULT CURRENT_TIMESTAMP
-    )
-`);
-
-db.exec(`
-    CREATE TABLE IF NOT EXISTS administradores (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        usuario TEXT NOT NULL UNIQUE,
-        password TEXT NOT NULL
-    )
-`);
-
-// =====================================
-// 2. ACTUALIZAR TABLA DE PRODUCTOS
-// =====================================
-
-const columnas = db.prepare(
-    "PRAGMA table_info(productos)"
-).all().map(columna => columna.name);
-
-if (!columnas.includes("descripcion")) {
-    db.exec("ALTER TABLE productos ADD COLUMN descripcion TEXT");
+if (!process.env.DATABASE_URL) {
+    throw new Error("Falta la variable DATABASE_URL");
 }
 
-if (!columnas.includes("imagen")) {
-    db.exec("ALTER TABLE productos ADD COLUMN imagen TEXT");
-}
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+    ssl: {
+        rejectUnauthorized: false
+    }
+});
+
+const secreto = process.env.JWT_SECRET;
 
 // =====================================
-// 3. PRODUCTOS INICIALES
-// =====================================
-
-const cantidad = db.prepare(
-    "SELECT COUNT(*) AS total FROM productos"
-).get();
-
-if (cantidad.total === 0) {
-    const insertar = db.prepare(`
-        INSERT INTO productos
-        (nombre, precio, categoria, descripcion, imagen)
-        VALUES (?, ?, ?, ?, ?)
-    `);
-
-    insertar.run(
-        "SUDADERA URBAN",
-        120000,
-        "sudaderas",
-        "Prendas cómodas con estilo urbano.",
-        "imagenes/sudadera.jpg"
-    );
-
-    insertar.run(
-        "CAMISETA STREET",
-        65000,
-        "camisetas",
-        "Diseños para expresar tu personalidad.",
-        "imagenes/camiseta.jpg"
-    );
-
-    insertar.run(
-        "PANTALON BAGGY",
-        150000,
-        "pantalones",
-        "Comodidad y actitud en cada paso.",
-        "imagenes/pantalon.jpg"
-    );
-}
-
-// =====================================
-// 4. ADMINISTRADOR
+// 2. CONFIGURACIÓN DEL ADMINISTRADOR
 // =====================================
 
 const usuarioAdmin = process.env.ADMIN_USER;
 const claveAdmin = process.env.ADMIN_PASSWORD;
-const secreto = process.env.JWT_SECRET;
 
 if (!usuarioAdmin || !claveAdmin || !secreto) {
-    throw new Error("Revisa las variables del archivo .env");
+    throw new Error("Revisa las variables de entorno");
 }
 
-const adminExiste = db.prepare(
-    "SELECT id FROM administradores WHERE usuario = ?"
-).get(usuarioAdmin);
+async function prepararAdministrador() {
+    const resultado = await pool.query(
+        "SELECT id FROM administradores WHERE usuario = $1",
+        [usuarioAdmin]
+    );
 
-if (!adminExiste) {
-    const claveEncriptada = bcrypt.hashSync(claveAdmin, 12);
+    if (resultado.rows.length === 0) {
+        const claveEncriptada = await bcrypt.hash(claveAdmin, 12);
 
-    db.prepare(`
-        INSERT INTO administradores (usuario, password)
-        VALUES (?, ?)
-    `).run(usuarioAdmin, claveEncriptada);
+        await pool.query(
+            `INSERT INTO administradores (usuario, password)
+             VALUES ($1, $2)`,
+            [usuarioAdmin, claveEncriptada]
+        );
+
+        console.log("Administrador creado correctamente");
+    }
 }
 
 // =====================================
-// 5. RUTA PRINCIPAL
+// 3. RUTA PRINCIPAL
 // =====================================
 
 app.get("/", (req, res) => {
-    res.sendFile(__dirname + "/index.html");
+    res.json({
+        mensaje: "Servidor de URBAN STYLE funcionando"
+    });
 });
 
 // =====================================
-// 6. CONSULTAR PRODUCTOS
+// 4. CONSULTAR PRODUCTOS
 // =====================================
 
-app.get("/api/productos", (req, res) => {
-    const productos = db.prepare(
+app.get("/api/productos", async (req, res) => {
+    const resultado = await pool.query(
         "SELECT * FROM productos ORDER BY id DESC"
-    ).all();
+    );
+
+    const productos = resultado.rows.map(producto => ({
+        ...producto,
+        precio: Number(producto.precio)
+    }));
 
     res.json(productos);
 });
 
-app.get("/api/productos/:id", (req, res) => {
-    const producto = db.prepare(
-        "SELECT * FROM productos WHERE id = ?"
-    ).get(Number(req.params.id));
+app.get("/api/productos/:id", async (req, res) => {
+    const resultado = await pool.query(
+        "SELECT * FROM productos WHERE id = $1",
+        [Number(req.params.id)]
+    );
 
-    if (!producto) {
+    if (resultado.rows.length === 0) {
         return res.status(404).json({
             mensaje: "Producto no encontrado"
         });
     }
 
+    const producto = resultado.rows[0];
+    producto.precio = Number(producto.precio);
+
     res.json(producto);
 });
 
 // =====================================
-// 7. AUTENTICACIÓN
+// 5. AUTENTICACIÓN
 // =====================================
 
 function verificarAdmin(req, res, next) {
@@ -204,7 +138,7 @@ function verificarAdmin(req, res, next) {
     }
 }
 
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", async (req, res) => {
     const { usuario, password } = req.body;
 
     if (
@@ -218,11 +152,14 @@ app.post("/api/admin/login", (req, res) => {
         });
     }
 
-    const admin = db.prepare(
-        "SELECT * FROM administradores WHERE usuario = ?"
-    ).get(usuario.trim());
+    const resultado = await pool.query(
+        "SELECT * FROM administradores WHERE usuario = $1",
+        [usuario.trim()]
+    );
 
-    if (!admin || !bcrypt.compareSync(password, admin.password)) {
+    const admin = resultado.rows[0];
+
+    if (!admin || !await bcrypt.compare(password, admin.password)) {
         return res.status(401).json({
             mensaje: "Credenciales incorrectas"
         });
@@ -251,10 +188,10 @@ app.get("/api/admin/perfil", verificarAdmin, (req, res) => {
 });
 
 // =====================================
-// 8. CREAR PRODUCTOS
+// 6. CREAR PRODUCTOS
 // =====================================
 
-app.post("/api/productos", verificarAdmin, (req, res) => {
+app.post("/api/productos", verificarAdmin, async (req, res) => {
     const {
         nombre,
         precio,
@@ -273,29 +210,31 @@ app.post("/api/productos", verificarAdmin, (req, res) => {
         });
     }
 
-    const resultado = db.prepare(`
-        INSERT INTO productos
-        (nombre, precio, categoria, descripcion, imagen)
-        VALUES (?, ?, ?, ?, ?)
-    `).run(
-        nombre.trim(),
-        precio,
-        categoria.trim().toLowerCase(),
-        typeof descripcion === "string" ? descripcion.trim() : "",
-        typeof imagen === "string" ? imagen.trim() : ""
+    const resultado = await pool.query(
+        `INSERT INTO productos
+         (nombre, precio, categoria, descripcion, imagen)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [
+            nombre.trim(),
+            precio,
+            categoria.trim().toLowerCase(),
+            typeof descripcion === "string" ? descripcion.trim() : "",
+            typeof imagen === "string" ? imagen.trim() : ""
+        ]
     );
 
     res.status(201).json({
         mensaje: "Producto creado correctamente",
-        id: resultado.lastInsertRowid
+        id: resultado.rows[0].id
     });
 });
 
 // =====================================
-// 9. ACTUALIZAR PRODUCTOS
+// 7. ACTUALIZAR PRODUCTOS
 // =====================================
 
-app.put("/api/productos/:id", verificarAdmin, (req, res) => {
+app.put("/api/productos/:id", verificarAdmin, async (req, res) => {
     const {
         nombre,
         precio,
@@ -307,6 +246,7 @@ app.put("/api/productos/:id", verificarAdmin, (req, res) => {
     const id = Number(req.params.id);
 
     if (
+        !Number.isInteger(id) ||
         typeof nombre !== "string" || !nombre.trim() ||
         typeof precio !== "number" || !Number.isFinite(precio) || precio <= 0 ||
         typeof categoria !== "string" || !categoria.trim()
@@ -316,24 +256,25 @@ app.put("/api/productos/:id", verificarAdmin, (req, res) => {
         });
     }
 
-    const resultado = db.prepare(`
-        UPDATE productos
-        SET nombre = ?,
-            precio = ?,
-            categoria = ?,
-            descripcion = ?,
-            imagen = ?
-        WHERE id = ?
-    `).run(
-        nombre.trim(),
-        precio,
-        categoria.trim().toLowerCase(),
-        typeof descripcion === "string" ? descripcion.trim() : "",
-        typeof imagen === "string" ? imagen.trim() : "",
-        id
+    const resultado = await pool.query(
+        `UPDATE productos
+         SET nombre = $1,
+             precio = $2,
+             categoria = $3,
+             descripcion = $4,
+             imagen = $5
+         WHERE id = $6`,
+        [
+            nombre.trim(),
+            precio,
+            categoria.trim().toLowerCase(),
+            typeof descripcion === "string" ? descripcion.trim() : "",
+            typeof imagen === "string" ? imagen.trim() : "",
+            id
+        ]
     );
 
-    if (resultado.changes === 0) {
+    if (resultado.rowCount === 0) {
         return res.status(404).json({
             mensaje: "Producto no encontrado"
         });
@@ -345,15 +286,16 @@ app.put("/api/productos/:id", verificarAdmin, (req, res) => {
 });
 
 // =====================================
-// 10. ELIMINAR PRODUCTOS
+// 8. ELIMINAR PRODUCTOS
 // =====================================
 
-app.delete("/api/productos/:id", verificarAdmin, (req, res) => {
-    const resultado = db.prepare(
-        "DELETE FROM productos WHERE id = ?"
-    ).run(Number(req.params.id));
+app.delete("/api/productos/:id", verificarAdmin, async (req, res) => {
+    const resultado = await pool.query(
+        "DELETE FROM productos WHERE id = $1",
+        [Number(req.params.id)]
+    );
 
-    if (resultado.changes === 0) {
+    if (resultado.rowCount === 0) {
         return res.status(404).json({
             mensaje: "Producto no encontrado"
         });
@@ -365,10 +307,10 @@ app.delete("/api/productos/:id", verificarAdmin, (req, res) => {
 });
 
 // =====================================
-// 11. REGISTRAR PEDIDOS
+// 9. REGISTRAR PEDIDOS
 // =====================================
 
-app.post("/api/pedidos", (req, res) => {
+app.post("/api/pedidos", async (req, res) => {
     const {
         nombre_cliente,
         correo,
@@ -404,9 +346,12 @@ app.post("/api/pedidos", (req, res) => {
             });
         }
 
-        const producto = db.prepare(
-            "SELECT id, nombre, precio FROM productos WHERE id = ?"
-        ).get(id);
+        const resultado = await pool.query(
+            "SELECT id, nombre, precio FROM productos WHERE id = $1",
+            [id]
+        );
+
+        const producto = resultado.rows[0];
 
         if (!producto) {
             return res.status(400).json({
@@ -414,40 +359,43 @@ app.post("/api/pedidos", (req, res) => {
             });
         }
 
-        total += producto.precio * cantidad;
+        const precio = Number(producto.precio);
+        total += precio * cantidad;
 
         productosValidados.push({
             id: producto.id,
             nombre: producto.nombre,
-            precio: producto.precio,
+            precio,
             cantidad
         });
     }
 
-    const resultado = db.prepare(`
-        INSERT INTO pedidos
-        (nombre_cliente, correo, direccion, productos, total)
-        VALUES (?, ?, ?, ?, ?)
-    `).run(
-        nombre_cliente.trim(),
-        correo.trim(),
-        direccion.trim(),
-        JSON.stringify(productosValidados),
-        total
+    const resultado = await pool.query(
+        `INSERT INTO pedidos
+         (nombre_cliente, correo, direccion, productos, total)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id`,
+        [
+            nombre_cliente.trim(),
+            correo.trim(),
+            direccion.trim(),
+            JSON.stringify(productosValidados),
+            total
+        ]
     );
 
     res.status(201).json({
         mensaje: "Pedido registrado",
-        pedidoId: resultado.lastInsertRowid,
+        pedidoId: resultado.rows[0].id,
         total
     });
 });
 
 // =====================================
-// 12. REGISTRAR MENSAJES
+// 10. REGISTRAR MENSAJES
 // =====================================
 
-app.post("/api/contacto", (req, res) => {
+app.post("/api/contacto", async (req, res) => {
     const { nombre, correo, mensaje } = req.body;
 
     if (
@@ -460,10 +408,11 @@ app.post("/api/contacto", (req, res) => {
         });
     }
 
-    db.prepare(`
-        INSERT INTO mensajes (nombre, correo, mensaje)
-        VALUES (?, ?, ?)
-    `).run(nombre.trim(), correo.trim(), mensaje.trim());
+    await pool.query(
+        `INSERT INTO mensajes (nombre, correo, mensaje)
+         VALUES ($1, $2, $3)`,
+        [nombre.trim(), correo.trim(), mensaje.trim()]
+    );
 
     res.status(201).json({
         mensaje: "Mensaje recibido correctamente"
@@ -471,11 +420,23 @@ app.post("/api/contacto", (req, res) => {
 });
 
 // =====================================
-// 13. INICIAR SERVIDOR
+// 11. INICIAR SERVIDOR
 // =====================================
 
-app.listen(PORT, () => {
-    console.log(
-        "Servidor funcionando en http://localhost:" + PORT
-    );
-});
+async function iniciarServidor() {
+    try {
+        await pool.query("SELECT 1");
+        console.log("Conexión con Supabase exitosa");
+
+        await prepararAdministrador();
+
+        app.listen(PORT, () => {
+            console.log("Servidor funcionando en el puerto " + PORT);
+        });
+    } catch (error) {
+        console.error("Error al iniciar el servidor:", error.message);
+        process.exit(1);
+    }
+}
+
+iniciarServidor();

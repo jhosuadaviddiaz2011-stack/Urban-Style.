@@ -1,36 +1,38 @@
-const todosLosProductos = [
-    {
-        id: 7,
-        nombre: "SUDADERA URBAN",
-        precio: 150000,
-        categoria: "sudaderas",
-        descripcion: "te veras super increible",
-        imagen: "imagenes/sudadera.jpg"
-    },
-    {
-        id: 6,
-        nombre: "CAMISETA STREET",
-        precio: 50000,
-        categoria: "camisetas",
-        descripcion: "te veras super increible",
-        imagen: "imagenes/camiseta.jpg"
-    },
-    {
-        id: 5,
-        nombre: "PANTALON BAGGY",
-        precio: 50000,
-        categoria: "camisetas",
-        descripcion: "te veras super increible",
-        imagen: "imagenes/pantalon.jpg"
-    }
-];
+
+const API = "https://urban-style-rok5.onrender.com/api";
 
 const buscador = document.getElementById("buscar-producto");
 const contenedor = document.getElementById("contenedor-productos");
 const estado = document.getElementById("estado-productos");
+
 const categorias = document.querySelectorAll(".categorias button");
 
+let todosLosProductos = [];
 let categoriaSeleccionada = "todo";
+
+// CARGAR PRODUCTOS DESDE SUPABASE
+
+async function cargarProductos() {
+    estado.textContent = "Cargando productos...";
+
+    try {
+        const respuesta = await fetch(`${API}/productos`);
+
+        if (!respuesta.ok) {
+            throw new Error("Error al consultar productos");
+        }
+
+        todosLosProductos = await respuesta.json();
+
+        filtrarProductos();
+
+    } catch (error) {
+        console.error(error);
+        estado.textContent = "No se pudieron cargar los productos.";
+    }
+}
+
+// MOSTRAR PRODUCTOS
 
 function mostrarProductos(productos) {
     contenedor.innerHTML = "";
@@ -50,11 +52,16 @@ function mostrarProductos(productos) {
         imagen.src = producto.imagen;
         imagen.alt = producto.nombre;
 
+        imagen.onerror = function () {
+            this.onerror = null;
+            this.alt = "Imagen no disponible";
+        };
+
         const nombre = document.createElement("h3");
         nombre.textContent = producto.nombre;
 
         const descripcion = document.createElement("p");
-        descripcion.textContent = producto.descripcion;
+        descripcion.textContent = producto.descripcion || "";
 
         const precio = document.createElement("span");
         precio.textContent =
@@ -65,29 +72,44 @@ function mostrarProductos(productos) {
         boton.className = "boton-principal";
         boton.textContent = "VER PRODUCTO";
 
-        tarjeta.append(imagen, nombre, descripcion, precio, boton);
+        tarjeta.append(
+            imagen,
+            nombre,
+            descripcion,
+            precio,
+            boton
+        );
+
         contenedor.appendChild(tarjeta);
     });
 }
+
+// BUSCADOR Y CATEGORÍAS
 
 function filtrarProductos() {
     const texto = buscador.value.toLowerCase().trim();
 
     const resultado = todosLosProductos.filter(producto => {
+        const nombre = (producto.nombre || "").toLowerCase();
+        const descripcion = (producto.descripcion || "").toLowerCase();
+        const categoria = (producto.categoria || "").toLowerCase();
+
         const coincideTexto =
-            producto.nombre.toLowerCase().includes(texto) ||
-            producto.descripcion.toLowerCase().includes(texto) ||
-            producto.categoria.toLowerCase().includes(texto);
+            nombre.includes(texto) ||
+            descripcion.includes(texto) ||
+            categoria.includes(texto);
 
         const coincideCategoria =
             categoriaSeleccionada === "todo" ||
-            producto.categoria === categoriaSeleccionada;
+            categoria === categoriaSeleccionada;
 
         return coincideTexto && coincideCategoria;
     });
 
     mostrarProductos(resultado);
 }
+
+// EVENTOS
 
 buscador.addEventListener("input", filtrarProductos);
 
@@ -98,4 +120,6 @@ categorias.forEach(boton => {
     });
 });
 
-mostrarProductos(todosLosProductos);
+// INICIAR
+
+cargarProductos();
